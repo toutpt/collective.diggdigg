@@ -1,13 +1,12 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five"
     xmlns:cmf="http://namespaces.zope.org/cmf"
     xmlns:i18n="http://namespaces.zope.org/i18n"
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="collective.diggdigg">
-
-  <include package=".browser" />
 
   <i18n:registerTranslations directory="locales" />
 
@@ -19,5 +18,22 @@
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
   <include file="upgrades.zcml" />
+
+  <interface
+      interface=".layer.ILayer"
+      name="collective.diggdigg"
+      />
+
+  <browser:resourceDirectory
+      name="collective.diggdigg"
+      directory="resources"/>
+
+  <browser:viewlet
+      name="collective.diggdigg"
+      manager="plone.app.layout.viewlets.interfaces.IBelowContentBody"
+      class=".viewlets.DiggDigg"
+      layer=".layer.ILayer"
+      permission="zope2.View"
+      />
 
 </configure>

@@ -1,0 +1,15 @@
+<div class="dd_outer">
+  <div class="dd_inner">
+    <div id="dd_ajax_float">
+      <div class="dd_button_v">
+      TODO
+      </div>
+      <div style="clear:left"></div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+var dd_offset_from_content = 51;
+var dd_top_offset_from_content = 51;
+</script>
+<script type="text/javascript" src="++resource++collective.diggdigg/js/diggdigg-floating-bar.js"></script>
