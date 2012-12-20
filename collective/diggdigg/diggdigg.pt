@@ -1,17 +1,21 @@
 <div class="dd_outer">
   <div class="dd_inner">
     <div id="dd_ajax_float">
-     <tal:buttons  tal:repeat="button view/get_buttons">
+     <tal:buttons  tal:repeat="button view/buttons">
       <div class="dd_button_v">
-        <a tal:replace="structure button/finalURL"></a>
+        <a tal:replace="structure button"></a>
       </div>
       <div style="clear:left"></div>
      </tal:buttons>
     </div>
   </div>
 </div>
-<script type="text/javascript">
-var dd_offset_from_content = 51;
-var dd_top_offset_from_content = 51;
-</script>
+<script type="text/javascript" tal:content="structure view/get_globalsettings"></script>
 <script type="text/javascript" src="++resource++collective.diggdigg/js/diggdigg-floating-bar.js"></script>
+
+<!-- 
+<script tal:condition="view/dd_lazyLoad_jQuery_script" type="text/javascript"
+  tal:content="structure view/dd_lazyLoad_jQuery_script"></script>
+<script type="text/javascript" tal:condition="view/dd_lazyLoad_scheduler_script"
+tal:content="structure string:jQuery(document).ready(function($) { ${view/dd_lazyLoad_scheduler_script} });"></script>
+ -->

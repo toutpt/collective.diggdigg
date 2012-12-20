@@ -1,0 +1,8 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="collective.diggdigg">
+
+  <adapter factory=".twitter.Twitter" name="twitter"/>
+  <adapter factory=".facebook.FacebookLike" name="facebook"/>
+
+</configure>

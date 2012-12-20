@@ -35,6 +35,6 @@
       layer=".layer.ILayer"
       permission="zope2.View"
       />
-
+  <include package=".buttons"/>
 
 </configure>
