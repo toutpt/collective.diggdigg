@@ -8,4 +8,5 @@ class Settings(interface.Interface):
 
     buttons = schema.List(title=u"Buttons",
                           value_type=schema.Choice(title=u"Button",
-                                        vocabulary=DiggDiggVocabulary))
+                                        vocabulary=DiggDiggVocabulary)
+                          )

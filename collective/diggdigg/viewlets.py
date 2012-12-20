@@ -26,13 +26,14 @@ class DiggDigg(ViewletBase):
         url = self.context.absolute_url()
         title = self.context.Title()
         postId = self.context.getId()
-        lazy = False
+        lazy = True
 
         registry = component.getUtility(IRegistry)
         settings = registry.forInterface(Settings)
 
-        buttons = [button() for button in DIGGDIGG_CLASSES\
-                   if button.NAME in settings.buttons]
+        buttons = [button(self.context, self.request)\
+                     for button in DIGGDIGG_CLASSES\
+                       if button.NAME in settings.buttons]
 
         for button in buttons:
             button.constructURL(url, title,

@@ -1,10 +1,12 @@
 from urllib import quote
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
+
 VOTE_URL = 'VOTE_URL'
 VOTE_TITLE = 'VOTE_TITLE'
 VOTE_IMAGE = 'VOTE_IMAGE'
 VOTE_BUTTON_DESIGN = 'VOTE_BUTTON_DESIGN'
+VOTE_SOURCE = "VOTE_SOURCE"
 SCHEDULER_TIMER = 'SCHEDULER_TIMER'
 POST_ID = 'POST_ID'
 VOTE_BUTTON_DESIGN_LAZY_WIDTH = 'VOTE_BUTTON_DESIGN_LAZY_WIDTH'
@@ -75,12 +77,10 @@ class BaseDD(object):
         self.option_button_weight = self.OPTION_BUTTON_WEIGHT
         self.option_ajax_left_float = self.OPTION_AJAX_LEFT_FLOAT
         self.option_lazy_load = self.OPTION_LAZY_LOAD
-        self.baseURL_lazy = self.BASEURL_LAZY
-        self.baseURL_lazy_script = self.BASEURL_LAZY_SCRIPT
-        self.scheduler_lazy_script = self.SCHEDULER_LAZY_SCRIPT
-        self.scheduler_lazy_timer = self.SCHEDULER_LAZY_TIMER
         self.button_weight_value = self.DEFAULT_BUTTON_WEIGHT
         self.init_options()
+        self.context = None
+        self.request = None
 
     def init_options(self):
         self.options[self.option_append_type] = self.append_type
@@ -111,7 +111,7 @@ class BaseDD(object):
         return self.options[self.option_button_design]
 
     def constructURL(self, url, title, button, postId, lazy, globalcfg=''):
-        #rawurlencode - replace space with %20
+        #quote - replace space with %20
         #urlencode - replace space with +
         if(self.isEncodeRequired):
             title = quote(title)
@@ -210,7 +210,7 @@ class BaseIFrameDD (BaseDD):
         self.final_scheduler_lazy_script = lazy_script
 
 
-class DD_Twitter (BaseDD):
+class DD_Twitter(BaseDD):
     append_type = 'left_float'
     button_design = 'Normal'
     ajax_left_float = 'on'
@@ -248,12 +248,18 @@ class DD_Twitter (BaseDD):
 
     VOTE_SOURCE = "VOTE_SOURCE"
 
-    def __init__(self):
+    def __init__(self, context, request):
         BaseDD.__init__(self,
                         self.NAME,
                         self.URL_WEBSITE,
                         self.URL_API,
                         self.BASEURL)
+        self.baseURL_lazy = self.BASEURL_LAZY
+        self.baseURL_lazy_script = self.BASEURL_LAZY_SCRIPT
+        self.scheduler_lazy_script = self.SCHEDULER_LAZY_SCRIPT
+        self.scheduler_lazy_timer = self.SCHEDULER_LAZY_TIMER
+        self.context = context
+        self.request = request
 
     def constructURL(self, url, title, button, postId, lazy, globalcfg=''):
         if(self.isEncodeRequired):
@@ -264,13 +270,13 @@ class DD_Twitter (BaseDD):
 
         if not lazy:
             #format twitter source
-            self.baseURL = self.baseURL.replace(self.VOTE_SOURCE,
+            self.baseURL = self.baseURL.replace(VOTE_SOURCE,
                                                 twitter_source)
 
             self.constructNormalURL(url, title, button, postId)
         else:
             #format twitter source
-            self.baseURL_lazy = self.baseURL_lazy.replace(self.VOTE_SOURCE,
+            self.baseURL_lazy = self.baseURL_lazy.replace(VOTE_SOURCE,
                                                           twitter_source)
 
             self.constructLazyLoadURL(url, title, button, postId)
@@ -278,21 +284,21 @@ class DD_Twitter (BaseDD):
     def constructLazyLoadURL(self, url, title, button, postId):
 
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = finalURL_lazy.replace(self.VOTE_BUTTON_DESIGN,
+        finalURL_lazy = finalURL_lazy.replace(VOTE_BUTTON_DESIGN,
                                               self.getButtonDesignLazy(button))
-        finalURL_lazy = finalURL_lazy.replace(self.VOTE_TITLE, title)
-        finalURL_lazy = finalURL_lazy.replace(self.VOTE_URL, url)
-        finalURL_lazy = finalURL_lazy.replace(self.POST_ID, postId)
+        finalURL_lazy = finalURL_lazy.replace(VOTE_TITLE, title)
+        finalURL_lazy = finalURL_lazy.replace(VOTE_URL, url)
+        finalURL_lazy = finalURL_lazy.replace(POST_ID, postId)
         self.finalURL_lazy = finalURL_lazy
 
         lazy_script = self.baseURL_lazy_script
-        lazy_script = lazy_script.replace(self.POST_ID, postId)
+        lazy_script = lazy_script.replace(POST_ID, postId)
         self.finalURL_lazy_script = lazy_script
 
         lazy_script = self.scheduler_lazy_script
-        lazy_script = lazy_script.replace(self.SCHEDULER_TIMER,
+        lazy_script = lazy_script.replace(SCHEDULER_TIMER,
                                           self.scheduler_lazy_timer)
-        lazy_script = lazy_script.replace(self.POST_ID, postId)
+        lazy_script = lazy_script.replace(POST_ID, postId)
         self.final_scheduler_lazy_script = lazy_script
 
 """
@@ -359,8 +365,8 @@ class DD_Buffer (BaseDD):
     def constructURL(url, title, button, postId, lazy, globalcfg = ''):
         
          if(self.isEncodeRequired):
-             title = rawurlencode(title)
-            url = rawurlencode(url)
+             title = quote(title)
+            url = quote(url)
          }
          
          buffer_source = ''
@@ -370,11 +376,11 @@ class DD_Buffer (BaseDD):
 
         if(lazy==DD_EMPTY_VALUE || lazy==False):
             #format twitter source
-            self.baseURL = str_replace(self.VOTE_BUFFER_SOURCE,buffer_source,self.baseURL)
+            self.baseURL = str_replace(VOTE_BUFFER_SOURCE,buffer_source,self.baseURL)
             self.constructNormalURL(url, title,button, postId)           
         }else{
             #format twitter source
-            self.baseURL_lazy = str_replace(self.VOTE_BUFFER_SOURCE,buffer_source,self.baseURL_lazy)
+            self.baseURL_lazy = str_replace(VOTE_BUFFER_SOURCE,buffer_source,self.baseURL_lazy)
         
             self.constructLazyLoadURL(url, title,button, postId)
         }
@@ -384,135 +390,122 @@ class DD_Buffer (BaseDD):
     def constructNormalURL(url, title, button, postId):
         
         finalURL = self.baseURL
-        finalURL = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
-        finalURL = str_replace(self.VOTE_TITLE,title,finalURL)
-        finalURL = str_replace(self.VOTE_URL,url,finalURL)
-        finalURL = str_replace(self.POST_ID,postId,finalURL)
+        finalURL = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
+        finalURL = str_replace(VOTE_TITLE,title,finalURL)
+        finalURL = str_replace(VOTE_URL,url,finalURL)
+        finalURL = str_replace(POST_ID,postId,finalURL)
         self.finalURL = finalURL
     }
 
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
-/******************************************************************************************
- * 
- * Facebook Like (XFBML)
- * https:#developers.facebook.com/tools/lint/
- * 
- */
-class DD_FbLike_XFBML (BaseDD):
+"""
+
+
+class DD_FbLike_XFBML(BaseDD):
     append_type = 'left_float'
     button_design = 'Like Button Count'
     ajax_left_float = 'on'
     lazy_load = False
-    
+
     NAME = "Facebook Like (XFBML)"
     URL_WEBSITE = "http:#www.facebook.com"
-    URL_API = "http:#developers.facebook.com/docs/reference/plugins/like"
+    URL_API = "http://developers.facebook.com/docs/reference/plugins/like"
 
-    BASEURL = "<script src=\"http:#connect.facebook.net/FACEBOOK_LOCALE/all.js#xfbml=1\"></script><fb:like href=\"VOTE_URL\" FACEBOOK_SEND FACEBOOK_SHOW_FACE VOTE_BUTTON_DESIGN ></fb:like>"
-        
-    FB_LOCALES = "http:#www.facebook.com/translations/FacebookLocales.xml"
+    BASEURL = """<script src="http://connect.facebook.net/FACEBOOK_LOCALE/all.js#xfbml=1"></script><fb:like href="VOTE_URL" FACEBOOK_SEND FACEBOOK_SHOW_FACE VOTE_BUTTON_DESIGN ></fb:like>"""
+
+    FB_LOCALES = "http://www.facebook.com/translations/FacebookLocales.xml"
     DEFAULT_BUTTON_WEIGHT = "96"
-    
+
     OPTION_APPEND_TYPE = "dd_fblike_xfbml_appendType"
     OPTION_BUTTON_DESIGN = "dd_fblike_xfbml_buttonDesign"
     OPTION_BUTTON_WEIGHT = "dd_fblike_xfbml_button_weight"
     OPTION_AJAX_LEFT_FLOAT = "dd_fblike_xfbml_ajax_left_float"
     OPTION_LAZY_LOAD = "dd_fblike_xfbml_lazy_load"
-    
-    LIKE_STANDARD =  " width=\"450\" " 
-    LIKE_BUTTON_COUNT= " layout=\"button_count\" width=\"92\" "
-    LIKE_BOX_COUNT= " layout=\"box_count\" width=\"50\" "
-    RECOMMEND_STANDARD = " action=\"recommend\" width=\"400\" "
-    RECOMMEND_BUTTON_COUNT= " action=\"recommend\" layout=\"button_count\" width=\"130\" "
-    RECOMMEND_BOX_COUNT= " action=\"recommend\" layout=\"box_count\" width=\"90\" "
 
-    FACEBOOK_SEND = "FACEBOOK_SEND" #send=\"True\"
-    FACEBOOK_SHOW_FACE = "FACEBOOK_SHOW_FACE" #show_faces=\"True\" 
+    LIKE_STANDARD = """ width="450" """
+    LIKE_BUTTON_COUNT = """ layout="button_count" width="92" """
+    LIKE_BOX_COUNT = """ layout="box_count" width="50" """
+    RECOMMEND_STANDARD = """ action="recommend" width="400" """
+    RECOMMEND_BUTTON_COUNT = """ action="recommend" layout="button_count" width="130" """
+    RECOMMEND_BOX_COUNT = """ action="recommend" layout="box_count" width="90" """
+
+    FACEBOOK_SEND = "FACEBOOK_SEND"  # send="True"
+    FACEBOOK_SHOW_FACE = "FACEBOOK_SHOW_FACE"  # show_faces="True" 
     FACEBOOK_LOCALE = "FACEBOOK_LOCALE"
-    
+
     islazyLoadAvailable = False
-    
+
     float_button_design = "Like Box Count"
-    
+
     buttonLayout = {
-        "Like Standard" : self.LIKE_STANDARD,
-        "Like Button Count" : self.LIKE_BUTTON_COUNT,
-        "Like Box Count" : self.LIKE_BOX_COUNT,
-        "Recommend Standard" : self.RECOMMEND_STANDARD,
-        "Recommend Button Count" : self.RECOMMEND_BUTTON_COUNT,
-        "Recommend Box Count" : self.RECOMMEND_BOX_COUNT
-    )
-    
-    def DD_FbLike_XFBML() {
-        
+        "Like Standard": LIKE_STANDARD,
+        "Like Button Count": LIKE_BUTTON_COUNT,
+        "Like Box Count": LIKE_BOX_COUNT,
+        "Recommend Standard": RECOMMEND_STANDARD,
+        "Recommend Button Count": RECOMMEND_BUTTON_COUNT,
+        "Recommend Box Count": RECOMMEND_BOX_COUNT
+    }
+
+    def __init__(self, context, request):
+        BaseDD.__init__(self, self.NAME, self.URL_WEBSITE, self.URL_API, self.BASEURL)
+
+        self.context = context
+        self.request = request
+
         self.option_append_type = self.OPTION_APPEND_TYPE
         self.option_button_design = self.OPTION_BUTTON_DESIGN
         self.option_button_weight = self.OPTION_BUTTON_WEIGHT
         self.option_ajax_left_float = self.OPTION_AJAX_LEFT_FLOAT
         self.option_lazy_load = self.OPTION_LAZY_LOAD
-        
+
         self.button_weight_value = self.DEFAULT_BUTTON_WEIGHT
-        
-        self.BaseDD(self.NAME, self.URL_WEBSITE, self.URL_API, self.BASEURL)
-        
-    } 
 
-    def constructURL(url, title,button, postId, lazy, globalcfg = ''):
-        
-         if(self.isEncodeRequired):
-             title = rawurlencode(title)
-            url = rawurlencode(url)
-         }
-     
-         fb_locale = ''
-         fb_send = ''
-         fb_face = ''
-         fb_send_value = ''
-         fb_face_value = ''
-         
-         if(globalcfg!=''):
-             fb_locale = globalcfg[DD_GLOBAL_FACEBOOK_OPTION][DD_GLOBAL_FACEBOOK_OPTION_LOCALE] 
-             fb_send = globalcfg[DD_GLOBAL_FACEBOOK_OPTION][DD_GLOBAL_FACEBOOK_OPTION_SEND] 
-             fb_face = globalcfg[DD_GLOBAL_FACEBOOK_OPTION][DD_GLOBAL_FACEBOOK_OPTION_FACE] 
-             
-             if(fb_send == DD_DISPLAY_ON):
-                 fb_send_value = "send=\"True\""
-             }else{
-                 fb_send_value = "send=\"False\""
-             }
-             
-             if(fb_face == DD_DISPLAY_ON):
-                 fb_face_value = "show_faces=\"True\""
-             }else{
-                 fb_face_value = "show_faces=\"False\""
-             }
-             
-         }
+    def constructURL(self, url, title, button, postId, lazy, globalcfg=''):
+        if(self.isEncodeRequired):
+            title = quote(title)
+            url = quote(url)
 
-         #show face and send button 
-        self.baseURL = str_replace(self.FACEBOOK_LOCALE,fb_locale,self.baseURL)
-        self.baseURL = str_replace(self.FACEBOOK_SEND,fb_send_value,self.baseURL)
-        self.baseURL = str_replace(self.FACEBOOK_SHOW_FACE,fb_face_value,self.baseURL)
-        
-        self.constructNormalURL(url, title,button, postId)
-                
+        fb_locale = 'en_US'
+        fb_send = ''
+        fb_face = ''
+        fb_send_value = ''
+        fb_face_value = ''
 
+        if fb_send:
+            fb_send_value = "send=\"true\""
+        else:
+            fb_send_value = "send=\"false\""
+
+        if fb_face:
+            fb_face_value = "show_faces=\"true\""
+        else:
+            fb_face_value = "show_faces=\"false\""
+
+        #show face and send button 
+        self.baseURL = self.baseURL.replace(self.FACEBOOK_LOCALE, fb_locale)
+        self.baseURL = self.baseURL.replace(self.FACEBOOK_SEND, fb_send_value)
+        self.baseURL = self.baseURL.replace(self.FACEBOOK_SHOW_FACE,
+                                            fb_face_value)
+
+        self.constructNormalURL(url, title, button, postId)
+
+"""
 /******************************************************************************************
  * 
  * http:#www.google.com/+1/button/
@@ -581,18 +574,18 @@ class DD_Google1 (BaseDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
 
@@ -661,18 +654,18 @@ class DD_Linkedin (BaseDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
 
@@ -757,11 +750,11 @@ class DD_Pinterest (BaseDD):
 
     #construct base URL, based on lazy value
      def constructURL(url, title, button, postId, lazy, globalcfg = ''):
-         #rawurlencode - replace space with %20
+         #quote - replace space with %20
         #urlencode - replace space with + 
          if(self.isEncodeRequired) {
-             title = rawurlencode(title)
-            url = rawurlencode(url)
+             title = quote(title)
+            url = quote(url)
          }
          
         if(lazy==DD_EMPTY_VALUE || lazy==False):
@@ -775,12 +768,12 @@ class DD_Pinterest (BaseDD):
     def constructNormalURL(url, title,button, postId):
         
         finalURL = self.baseURL
-        finalURL = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
-        finalURL = str_replace(self.VOTE_TITLE,title,finalURL)
-        finalURL = str_replace(self.VOTE_URL,url,finalURL)
-        finalURL = str_replace(self.POST_ID,postId,finalURL)
-        finalURL = str_replace(self.VOTE_TITLE,title,finalURL)
-        finalURL = str_replace(self.VOTE_URL,url,finalURL)
+        finalURL = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
+        finalURL = str_replace(VOTE_TITLE,title,finalURL)
+        finalURL = str_replace(VOTE_URL,url,finalURL)
+        finalURL = str_replace(POST_ID,postId,finalURL)
+        finalURL = str_replace(VOTE_TITLE,title,finalURL)
+        finalURL = str_replace(VOTE_URL,url,finalURL)
         
         # If theme uses post thumbnails, grab the chosen thumbnail if not grab the first image attached to post
         if(current_theme_supports('post-thumbnails')):
@@ -808,34 +801,34 @@ class DD_Pinterest (BaseDD):
             image = ''
         }
         
-        finalURL = str_replace(self.VOTE_IMAGE,image,finalURL)
+        finalURL = str_replace(VOTE_IMAGE,image,finalURL)
         self.finalURL = finalURL
     }
     
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_TITLE,title,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_TITLE,title,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
         if(current_theme_supports('post-thumbnails')) thumb = wp_get_attachment_image_src( get_post_thumbnail_id(postId), 'full' )
         else thumb = False
         if(thumb) image = thumb[0]
         else image = ''
-        finalURL_lazy = str_replace(self.VOTE_IMAGE,image,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_IMAGE,image,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.VOTE_TITLE,title,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_URL,url,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_TITLE,title,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_URL,url,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
 
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
 
@@ -905,11 +898,11 @@ class DD_Flattr (BaseDD):
          }
 
         if(lazy==DD_EMPTY_VALUE || lazy==False):
-            self.baseURL = str_replace(self.VOTE_FLATTR_UID, flattr_uid, self.baseURL)
+            self.baseURL = str_replace(VOTE_FLATTR_UID, flattr_uid, self.baseURL)
             self.constructNormalURL(url, title, button, postId)
 
         }else{
-            self.baseURL_lazy = str_replace(self.VOTE_FLATTR_UID, flattr_uid, self.baseURL_lazy)
+            self.baseURL_lazy = str_replace(VOTE_FLATTR_UID, flattr_uid, self.baseURL_lazy)
             self.constructLazyLoadURL(url, title, button, postId)
         }
         
@@ -918,29 +911,29 @@ class DD_Flattr (BaseDD):
     def constructNormalURL(url, title, button, postId):
         
         finalURL = self.baseURL
-        finalURL = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
-        finalURL = str_replace(self.VOTE_TITLE,title,finalURL)
-        finalURL = str_replace(self.VOTE_URL,url,finalURL)
-        finalURL = str_replace(self.POST_ID,postId,finalURL)
+        finalURL = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
+        finalURL = str_replace(VOTE_TITLE,title,finalURL)
+        finalURL = str_replace(VOTE_URL,url,finalURL)
+        finalURL = str_replace(POST_ID,postId,finalURL)
         self.finalURL = finalURL
     }
 
     def constructLazyLoadURL(url, title, button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_TITLE,title,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_TITLE,title,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
 
@@ -965,7 +958,7 @@ class DD_FbLike (BaseIFrameDD):
     OPTION_AJAX_LEFT_FLOAT = "dd_fblike_ajax_left_float"
     OPTION_LAZY_LOAD = "dd_fblike_lazy_load"
     
-    BASEURL_LAZY = "<div class='dd-fblike-ajax-load dd-fblike-POST_ID'></div><iframe class=\"DD_FBLIKE_AJAX_POST_ID\" src='' height='0' width='0' scrolling='no' frameborder='0' allowTransparency='True'></iframe>"
+    BASEURL_LAZY = "<div class='dd-fblike-ajax-load dd-fblike-POST_ID'></div><iframe class="DD_FBLIKE_AJAX_POST_ID" src='' height='0' width='0' scrolling='no' frameborder='0' allowTransparency='True'></iframe>"
     BASEURL_LAZY_SCRIPT = " function loadFBLike_POST_ID(): jQuery(document).ready(function(\) { \('.dd-fblike-POST_ID').remove()\('.DD_FBLIKE_AJAX_POST_ID').attr('width','VOTE_BUTTON_DESIGN_LAZY_WIDTH')\('.DD_FBLIKE_AJAX_POST_ID').attr('height','VOTE_BUTTON_DESIGN_LAZY_HEIGHT')\('.DD_FBLIKE_AJAX_POST_ID').attr('src','http:#www.facebook.com/plugins/like.php?href=VOTE_URL&amplocale=FACEBOOK_LOCALE&ampVOTE_BUTTON_DESIGN') }) }"
     SCHEDULER_LAZY_SCRIPT = "window.setTimeout('loadFBLike_POST_ID()',SCHEDULER_TIMER)"
     SCHEDULER_LAZY_TIMER = "1000"
@@ -1049,19 +1042,19 @@ class DD_FbLike (BaseIFrameDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_TITLE,title,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)    
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_TITLE,title,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)    
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_TITLE,title,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_URL,url,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_TITLE,title,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_URL,url,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         
         #add new line
         #convert &amp to &
@@ -1069,8 +1062,8 @@ class DD_FbLike (BaseIFrameDD):
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
     }
@@ -1078,8 +1071,8 @@ class DD_FbLike (BaseIFrameDD):
     def constructURL(url, title,button, postId, lazy, globalcfg = ''):
         
          if(self.isEncodeRequired):
-             title = rawurlencode(title)
-            url = rawurlencode(url)
+             title = quote(title)
+            url = quote(url)
          }
          
          facebook_locale = ''
@@ -1161,19 +1154,19 @@ class DD_Digg (BaseDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.VOTE_TITLE,title,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_URL,url,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_TITLE,title,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_URL,url,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
 
@@ -1190,7 +1183,7 @@ class DD_Reddit (BaseIFrameDD):
     URL_API = "http:#www.reddit.com/buttons/"
     DEFAULT_BUTTON_WEIGHT = "99"
     
-    BASEURL = "<iframe src=\"http:#www.reddit.com/static/button/VOTE_BUTTON_DESIGN&url=VOTE_URL&title=VOTE_TITLE&newwindow='1'\" EXTRA_VALUE scrolling='no' frameborder='0'></iframe>"
+    BASEURL = "<iframe src="http:#www.reddit.com/static/button/VOTE_BUTTON_DESIGN&url=VOTE_URL&title=VOTE_TITLE&newwindow='1'" EXTRA_VALUE scrolling='no' frameborder='0'></iframe>"
     
     BASEURL_LAZY = "<div class='dd-reddit-ajax-load dd-reddit-POST_ID'></div><iframe class='DD_REDDIT_AJAX_POST_ID' src='' height='0' width='0' scrolling='no' frameborder='0'></iframe>"
     BASEURL_LAZY_SCRIPT = " function loadReddit_POST_ID(): jQuery(document).ready(function(\) { \('.dd-reddit-POST_ID').remove()\('.DD_REDDIT_AJAX_POST_ID').attr('width','VOTE_BUTTON_DESIGN_LAZY_WIDTH')\('.DD_REDDIT_AJAX_POST_ID').attr('height','VOTE_BUTTON_DESIGN_LAZY_HEIGHT')\('.DD_REDDIT_AJAX_POST_ID').attr('src','http:#www.reddit.com/static/button/VOTE_BUTTON_DESIGN&url=VOTE_URL&title=VOTE_TITLE&newwindow=1') }) }"
@@ -1228,9 +1221,9 @@ class DD_Reddit (BaseIFrameDD):
     )
     
     buttonLayoutWidthHeight = {
-        "Normal" : "height=\"69\" width=\"51\"",
-        "Compact" : "height=\"22\" width=\"120\"",
-        "Icon" : "height=\"52\" width=\"69\""
+        "Normal" : "height="69" width="51"",
+        "Compact" : "height="22" width="120"",
+        "Icon" : "height="52" width="69""
     )
     
     def DD_Reddit() {
@@ -1310,18 +1303,18 @@ class DD_GBuzz (BaseDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
 
@@ -1391,97 +1384,95 @@ class DD_DZone (BaseDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_TITLE,title,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_URL,url,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_TITLE,title,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_URL,url,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
+"""
 
-/******************************************************************************************
- * 
- * http:#www.facebook.com
- * FB share API is missing from Facebook.com, all redirect to FB Like API?
- */
-class DD_FbShare (BaseDD):
-    
+class DD_FbShare(BaseDD):
+
     NAME = "Facebook Share"
     URL_WEBSITE = "http:#www.facebook.com"
     URL_API = "http:#www.facebook.com/share/"
-    BASEURL = "<a name='fb_share' type='VOTE_BUTTON_DESIGN' share_url='VOTE_URL' href='http:#www.facebook.com/sharer.php'></a><script src='http:#static.ak.fbcdn.net/connect.php/js/FB.Share' type='text/javascript'></script>"
+    BASEURL = """<a name='fb_share' type='VOTE_BUTTON_DESIGN' share_url='VOTE_URL' href='http://www.facebook.com/sharer.php'></a><script src='http://static.ak.fbcdn.net/connect.php/js/FB.Share' type='text/javascript'></script>"""
     DEFAULT_BUTTON_WEIGHT = "95"
-    
+
     OPTION_APPEND_TYPE = "dd_fbshare_appendType"
     OPTION_BUTTON_DESIGN = "dd_fbshare_buttonDesign"
     OPTION_BUTTON_WEIGHT = "dd_fbshare_button_weight"
     OPTION_AJAX_LEFT_FLOAT = "dd_fbshare_ajax_left_float"
     OPTION_LAZY_LOAD = "dd_fbshare_lazy_load"
-    
-    BASEURL_LAZY = "<div class='dd-fbshare-ajax-load dd-fbshare-POST_ID'></div><a class='DD_FBSHARE_AJAX_POST_ID' name='fb_share' type='VOTE_BUTTON_DESIGN' share_url='VOTE_URL' href='http:#www.facebook.com/sharer.php'></a>"
-    BASEURL_LAZY_SCRIPT = " function loadFBShare_POST_ID(): jQuery(document).ready(function(\) { \('.dd-fbshare-POST_ID').remove() \.getScript('http:#static.ak.fbcdn.net/connect.php/js/FB.Share') }) }"
-    SCHEDULER_LAZY_SCRIPT = "window.setTimeout('loadFBShare_POST_ID()',SCHEDULER_TIMER)"
+
+    BASEURL_LAZY = "<div class='dd-fbshare-ajax-load dd-fbshare-POST_ID'></div><a class='DD_FBSHARE_AJAX_POST_ID' name='fb_share' type='VOTE_BUTTON_DESIGN' share_url='VOTE_URL' href='http://www.facebook.com/sharer.php'></a>";
+    BASEURL_LAZY_SCRIPT = " function loadFBShare_POST_ID(){ jQuery(document).ready(function(\$) { \$('.dd-fbshare-POST_ID').remove(); \$.getScript('http://static.ak.fbcdn.net/connect.php/js/FB.Share'); }); }";
+    SCHEDULER_LAZY_SCRIPT = "window.setTimeout('loadFBShare_POST_ID()',SCHEDULER_TIMER);";
     SCHEDULER_LAZY_TIMER = "1000"
-    
+
     buttonLayout = {
-        "Normal" : "box_count",
-        "Compact" : "button_count"
-    )
-    
+        "Normal": "box_count",
+        "Compact": "button_count"
+    }
+
     buttonLayoutLazy = {
-        "Normal" : "box_count",
-        "Compact" : "button_count"
-    )
-    
+        "Normal": "box_count",
+        "Compact": "button_count"
+    }
+
     isEncodeRequired = False
-    
-    def DD_FbShare() {
-        
+
+    def __init__(self, context, request):
+
         self.option_append_type = self.OPTION_APPEND_TYPE
         self.option_button_design = self.OPTION_BUTTON_DESIGN
         self.option_button_weight = self.OPTION_BUTTON_WEIGHT
         self.option_ajax_left_float = self.OPTION_AJAX_LEFT_FLOAT
         self.option_lazy_load = self.OPTION_LAZY_LOAD
-        
+
         self.baseURL_lazy = self.BASEURL_LAZY
         self.baseURL_lazy_script = self.BASEURL_LAZY_SCRIPT
         self.scheduler_lazy_script = self.SCHEDULER_LAZY_SCRIPT
         self.scheduler_lazy_timer = self.SCHEDULER_LAZY_TIMER
-        
-        self.button_weight_value = self.DEFAULT_BUTTON_WEIGHT
-        
-         self.BaseDD(self.NAME, self.URL_WEBSITE, self.URL_API, self.BASEURL)
-      
-    }
- 
-    def constructLazyLoadURL(url, title,button, postId):
-        
-        finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
-        self.finalURL_lazy = finalURL_lazy
-        
-        finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
-        self.finalURL_lazy_script = finalURL_lazy_script
-        
-        final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
-        self.final_scheduler_lazy_script =  final_scheduler_lazy_script
-        
 
+        self.button_weight_value = self.DEFAULT_BUTTON_WEIGHT
+
+        BaseDD.__init__(self, self.NAME, self.URL_WEBSITE, self.URL_API,
+                        self.BASEURL)
+
+    def constructLazyLoadURL(self, url, title, button, postId):
+
+        finalURL_lazy = self.baseURL_lazy
+        finalURL_lazy = finalURL_lazy.replace(VOTE_URL, url)
+        finalURL_lazy = finalURL_lazy.replace(VOTE_BUTTON_DESIGN,
+                                          self.getButtonDesignLazy(button))
+        finalURL_lazy = finalURL_lazy.replace(POST_ID, postId)
+        self.finalURL_lazy = finalURL_lazy
+
+        lazy_script = self.baseURL_lazy_script
+        lazy_script = lazy_script.replace(POST_ID, postId)
+        self.finalURL_lazy_script = lazy_script
+
+        lazy_script = self.scheduler_lazy_script
+        lazy_script = lazy_script.replace(SCHEDULER_TIMER,
+                                          self.scheduler_lazy_timer)
+        lazy_script = lazy_script.replace(POST_ID, postId)
+        self.final_scheduler_lazy_script = lazy_script
+
+
+"""
 /******************************************************************************************
  * 
  * http:#www.fbshare.me
@@ -1502,7 +1493,7 @@ class DD_FbShareMe (BaseDD):
     OPTION_AJAX_LEFT_FLOAT = "dd_fbshareme_ajax_left_float"
     OPTION_LAZY_LOAD = "dd_fbshareme_lazy_load"
 
-    BASEURL_LAZY = "<div class='dd-fbshareme-ajax-load dd-fbshareme-POST_ID'></div><iframe class=\"DD_FBSHAREME_AJAX_POST_ID\" src='' height='0' width='0' scrolling='no' frameborder='0' allowtransparency='True'></iframe>"
+    BASEURL_LAZY = "<div class='dd-fbshareme-ajax-load dd-fbshareme-POST_ID'></div><iframe class="DD_FBSHAREME_AJAX_POST_ID" src='' height='0' width='0' scrolling='no' frameborder='0' allowtransparency='True'></iframe>"
     BASEURL_LAZY_SCRIPT = " function loadFBShareMe_POST_ID(): jQuery(document).ready(function(\) { \('.dd-fbshareme-POST_ID').remove()\('.DD_FBSHAREME_AJAX_POST_ID').attr('width','VOTE_BUTTON_DESIGN_LAZY_WIDTH')\('.DD_FBSHAREME_AJAX_POST_ID').attr('height','VOTE_BUTTON_DESIGN_LAZY_HEIGHT')\('.DD_FBSHAREME_AJAX_POST_ID').attr('src','http:#widgets.fbshare.me/files/fbshare.php?url=VOTE_URL&size=VOTE_BUTTON_DESIGN')  }) }"
     SCHEDULER_LAZY_SCRIPT = "window.setTimeout('loadFBShareMe_POST_ID()',SCHEDULER_TIMER)"
     SCHEDULER_LAZY_TIMER = "1000"
@@ -1551,21 +1542,21 @@ class DD_FbShareMe (BaseDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_TITLE,title,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_URL,url,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_TITLE,title,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_URL,url,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
         
 
@@ -1584,7 +1575,7 @@ class DD_Delicious (BaseDD):
     URL_API = "http:#www.delicious.com/help/feeds"
     DEFAULT_BUTTON_WEIGHT = "93"
     
-    BASEURL = "<div class='VOTE_BUTTON_DESIGN dd_delicious'><a class='VOTE_BUTTON_DESIGN' href='http:#delicious.com/save' onclick=\"window.open('http:#delicious.com/save?v=5&ampnoui&ampjump=close&ampurl='+encodeURIComponent('VOTE_URL')+'&amptitle='+encodeURIComponent('VOTE_TITLE'),'delicious', 'toolbar=no,width=550,height=550') return False\"><span id='DD_DELICIOUS_AJAX_POST_ID'><div style='padding-top:3px'>SAVED_COUNT</div></span></a></div>"
+    BASEURL = "<div class='VOTE_BUTTON_DESIGN dd_delicious'><a class='VOTE_BUTTON_DESIGN' href='http:#delicious.com/save' onclick="window.open('http:#delicious.com/save?v=5&ampnoui&ampjump=close&ampurl='+encodeURIComponent('VOTE_URL')+'&amptitle='+encodeURIComponent('VOTE_TITLE'),'delicious', 'toolbar=no,width=550,height=550') return False"><span id='DD_DELICIOUS_AJAX_POST_ID'><div style='padding-top:3px'>SAVED_COUNT</div></span></a></div>"
     
     OPTION_APPEND_TYPE = "dd_delicious_appendType"
     OPTION_BUTTON_DESIGN = "dd_delicious_buttonDesign"
@@ -1592,7 +1583,7 @@ class DD_Delicious (BaseDD):
     OPTION_AJAX_LEFT_FLOAT = "dd_delicious_ajax_left_float"
     OPTION_LAZY_LOAD = "dd_delicious_lazy_load"
 
-    BASEURL_LAZY = "<div class='VOTE_BUTTON_DESIGN dd_delicious'><a href='http:#delicious.com/save' onclick=\"window.open('http:#delicious.com/save?v=5&ampnoui&ampjump=close&ampurl='+encodeURIComponent('VOTE_URL')+'&amptitle='+encodeURIComponent('VOTE_TITLE'),'delicious', 'toolbar=no,width=550,height=550') return False\"><span id='DD_DELICIOUS_AJAX_POST_ID'>SAVED_COUNT</span></a></div>"
+    BASEURL_LAZY = "<div class='VOTE_BUTTON_DESIGN dd_delicious'><a href='http:#delicious.com/save' onclick="window.open('http:#delicious.com/save?v=5&ampnoui&ampjump=close&ampurl='+encodeURIComponent('VOTE_URL')+'&amptitle='+encodeURIComponent('VOTE_TITLE'),'delicious', 'toolbar=no,width=550,height=550') return False"><span id='DD_DELICIOUS_AJAX_POST_ID'>SAVED_COUNT</span></a></div>"
     BASEURL_LAZY_SCRIPT = " function loadDelicious_POST_ID(): jQuery(document).ready(function(\) { \('.dd-delicious-POST_ID').remove()\.getJSON('http:#feeds.delicious.com/v2/json/urlinfo/data?url=VOTE_URL&ampcallback=?',function(data) {msg =''count = 0if (data.length > 0) {count = data[0].total_postsif(count ==0):msg = '0'}else if(count ==1):msg = '1'}else{msg = count}}else{msg = '0'}\('#DD_DELICIOUS_AJAX_POST_ID').text(msg)}) }) }"
     SCHEDULER_LAZY_SCRIPT = "window.setTimeout('loadDelicious_POST_ID()',SCHEDULER_TIMER)"
     SCHEDULER_LAZY_TIMER = "1000"
@@ -1648,9 +1639,9 @@ class DD_Delicious (BaseDD):
         }
         
         finalURL = self.baseURL
-        finalURL = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
-        finalURL = str_replace(self.VOTE_TITLE,title,finalURL)
-        finalURL = str_replace(self.VOTE_URL,url,finalURL)
+        finalURL = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesign(button),finalURL)
+        finalURL = str_replace(VOTE_TITLE,title,finalURL)
+        finalURL = str_replace(VOTE_URL,url,finalURL)
         finalURL = str_replace(self.SAVED_COUNT,count,finalURL)
         
         self.finalURL = finalURL
@@ -1659,26 +1650,26 @@ class DD_Delicious (BaseDD):
     def constructLazyLoadURL(url, title,button, postId):
         
         finalURL_lazy = self.baseURL_lazy
-        finalURL_lazy = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_TITLE,title,finalURL_lazy)
-        finalURL_lazy = str_replace(self.VOTE_URL,url,finalURL_lazy)
-        finalURL_lazy = str_replace(self.POST_ID,postId,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_TITLE,title,finalURL_lazy)
+        finalURL_lazy = str_replace(VOTE_URL,url,finalURL_lazy)
+        finalURL_lazy = str_replace(POST_ID,postId,finalURL_lazy)
         #add new line
         finalURL_lazy = str_replace(self.SAVED_COUNT,'',finalURL_lazy)
         self.finalURL_lazy = finalURL_lazy
         
         finalURL_lazy_script = self.baseURL_lazy_script
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_TITLE,title,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.VOTE_URL,url,finalURL_lazy_script)
-        finalURL_lazy_script = str_replace(self.POST_ID,postId,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_WIDTH,self.getButtonDesignLazyWidth(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN_LAZY_HEIGHT,self.getButtonDesignLazyHeight(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesignLazy(button),finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_TITLE,title,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(VOTE_URL,url,finalURL_lazy_script)
+        finalURL_lazy_script = str_replace(POST_ID,postId,finalURL_lazy_script)
         self.finalURL_lazy_script = finalURL_lazy_script
         
         final_scheduler_lazy_script = self.scheduler_lazy_script
-        final_scheduler_lazy_script = str_replace(self.SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
-        final_scheduler_lazy_script = str_replace(self.POST_ID,postId,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(SCHEDULER_TIMER,self.scheduler_lazy_timer,final_scheduler_lazy_script)
+        final_scheduler_lazy_script = str_replace(POST_ID,postId,final_scheduler_lazy_script)
         self.final_scheduler_lazy_script =  final_scheduler_lazy_script
     }
 }
@@ -1733,7 +1724,7 @@ class DD_YBuzz (BaseDD):
     URL_API = "http:#buzz.yahoo.com/buttons"
     DEFAULT_BUTTON_WEIGHT = "90"
     
-    BASEURL = "<script type='text/javascript'>yahooBuzzArticleHeadline=\"VOTE_TITLE\"yahooBuzzArticleId=\"VOTE_URL\"</script><script type='text/javascript' src='http:#d.yimg.com/ds/badge2.js' badgetype='VOTE_BUTTON_DESIGN'></script>"
+    BASEURL = "<script type='text/javascript'>yahooBuzzArticleHeadline="VOTE_TITLE"yahooBuzzArticleId="VOTE_URL"</script><script type='text/javascript' src='http:#d.yimg.com/ds/badge2.js' badgetype='VOTE_BUTTON_DESIGN'></script>"
     
     OPTION_APPEND_TYPE = "dd_ybuzz_appendType"
     OPTION_BUTTON_DESIGN = "dd_ybuzz_buttonDesign"
@@ -1963,8 +1954,8 @@ class DD_TweetMeme (BaseDD):
     def constructURL(url, title,button, postId, lazy, globalcfg = ''):
         
          if(self.isEncodeRequired):
-             title = rawurlencode(title)
-            url = rawurlencode(url)
+             title = quote(title)
+            url = quote(url)
          }
          
          source = ''
@@ -1979,17 +1970,17 @@ class DD_TweetMeme (BaseDD):
 
         if(lazy==DD_EMPTY_VALUE):
 
-            self.baseURL = str_replace(self.VOTE_SOURCE,source,self.baseURL)
-            self.baseURL = str_replace(self.VOTE_SERVICE_NAME,service,self.baseURL)
-            self.baseURL = str_replace(self.VOTE_SERVICE_API,serviceapi,self.baseURL)
+            self.baseURL = str_replace(VOTE_SOURCE,source,self.baseURL)
+            self.baseURL = str_replace(VOTE_SERVICE_NAME,service,self.baseURL)
+            self.baseURL = str_replace(VOTE_SERVICE_API,serviceapi,self.baseURL)
         
             self.constructNormalURL(url, title,button, postId)
             
         }else{
 
-            self.baseURL_lazy_script = str_replace(self.VOTE_SOURCE,source,self.baseURL_lazy_script)
-            self.baseURL_lazy_script = str_replace(self.VOTE_SERVICE_NAME,service,self.baseURL_lazy_script)
-            self.baseURL_lazy_script = str_replace(self.VOTE_SERVICE_API,serviceapi,self.baseURL_lazy_script)
+            self.baseURL_lazy_script = str_replace(VOTE_SOURCE,source,self.baseURL_lazy_script)
+            self.baseURL_lazy_script = str_replace(VOTE_SERVICE_NAME,service,self.baseURL_lazy_script)
+            self.baseURL_lazy_script = str_replace(VOTE_SERVICE_API,serviceapi,self.baseURL_lazy_script)
         
             self.constructLazyLoadURL(url, title,button, postId)
         }
@@ -2007,7 +1998,7 @@ class DD_Topsy (BaseDD):
     URL_API = "http:#labs.topsy.com/button/retweet-button/"
     DEFAULT_BUTTON_WEIGHT = "96"
     
-    BASEURL = "<script type=\"text/javascript\" src=\"http:#cdn.topsy.com/topsy.js?init=topsyWidgetCreator\"></script><div class=\"topsy_widget_data\"><!--{\"url\":\"VOTE_URL\",\"style\":\"VOTE_BUTTON_DESIGN\",\"theme\":\"VOTE_THEME\",\"nick\":\"VOTE_SOURCE\"}--></div>"
+    BASEURL = "<script type="text/javascript" src="http:#cdn.topsy.com/topsy.js?init=topsyWidgetCreator"></script><div class="topsy_widget_data"><!--{"url":"VOTE_URL","style":"VOTE_BUTTON_DESIGN","theme":"VOTE_THEME","nick":"VOTE_SOURCE"}--></div>"
 
     OPTION_APPEND_TYPE = "dd_topsy_appendType"
     OPTION_BUTTON_DESIGN = "dd_topsy_buttonDesign"
@@ -2043,8 +2034,8 @@ class DD_Topsy (BaseDD):
     def constructURL(url, title,button, postId, lazy, globalcfg = ''):
 
         if(self.isEncodeRequired):
-             title = rawurlencode(title)
-            url = rawurlencode(url)
+             title = quote(title)
+            url = quote(url)
          }
          
          source = ''
@@ -2056,10 +2047,10 @@ class DD_Topsy (BaseDD):
          }
          
         finalURL = ''
-        finalURL = str_replace(self.VOTE_BUTTON_DESIGN,self.getButtonDesign(button),self.baseURL)
-        finalURL = str_replace(self.VOTE_URL,url,finalURL)
-        finalURL = str_replace(self.VOTE_SOURCE,source,finalURL)
-        finalURL = str_replace(self.VOTE_THEME,theme,finalURL)
+        finalURL = str_replace(VOTE_BUTTON_DESIGN,self.getButtonDesign(button),self.baseURL)
+        finalURL = str_replace(VOTE_URL,url,finalURL)
+        finalURL = str_replace(VOTE_SOURCE,source,finalURL)
+        finalURL = str_replace(VOTE_THEME,theme,finalURL)
     
         self.finalURL = finalURL
 
@@ -2107,7 +2098,7 @@ class DD_Comments (BaseDD):
         result = ''
         
         url = url . self.COMMENTS_RESPONSE_ID
-        result = str_replace(self.VOTE_URL,url,self.baseURL)
+        result = str_replace(VOTE_URL,url,self.baseURL)
         result = str_replace(self.COMMENTS_COUNT,commentcount,result)
         
         self.finalURL = result
@@ -2117,7 +2108,7 @@ class DD_Serpd (BaseDD):
     NAME = "Serpd"
     URL_WEBSITE = "http:#www.serpd.com"
     URL_API = "http:#www.serpd.com/widgets/"
-    BASEURL = "<script type=\"text/javascript\">submit_url = \"VOTE_URL\"</script><script type=\"text/javascript\" src=\"http:#www.serpd.com/index.php?page=evb\"></script>"
+    BASEURL = "<script type="text/javascript">submit_url = "VOTE_URL"</script><script type="text/javascript" src="http:#www.serpd.com/index.php?page=evb"></script>"
     
     OPTION_APPEND_TYPE = "dd_serpd_appendType"
     OPTION_BUTTON_DESIGN = "dd_serpd_buttonDesign"
@@ -2148,8 +2139,8 @@ class DD_Serpd (BaseDD):
     }    
 }"""
 
-DIGGDIGG_CLASSES = [DD_Twitter, ]
+DIGGDIGG_CLASSES = [DD_Twitter, DD_FbLike_XFBML, DD_FbShare]
 
 DiggDiggVocabulary = SimpleVocabulary([
-    SimpleTerm(d.name, d.name, unicode(d.name)) for d in DIGGDIGG_CLASSES
+    SimpleTerm(d.NAME, d.NAME, unicode(d.NAME)) for d in DIGGDIGG_CLASSES
 ])
