@@ -6,5 +6,8 @@
   <adapter factory=".facebook.FacebookLike" name="facebook"/>
   <adapter factory=".google.PlusOne" name="plusone"/>
   <adapter factory=".bufferapp.Buffer" name="bufferapp"/>
+  <adapter factory=".linkedin.Linkedin" name="linkedin"/>
+  <adapter factory=".flattr.Flattr" name="flattr"/>
+  <adapter factory=".reddit.Reddit" name="reddit"/>
 
 </configure>
