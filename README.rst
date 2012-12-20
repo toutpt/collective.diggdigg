@@ -1,6 +1,29 @@
 Introduction
 ============
 
+DiggDigg_ is a sharing tool (ala addthis) for Wordpress. 
+This addon provide DiggDigg to Plone.
+
+About DiggDigg
+==============
+
+Credits
+=======
+
+Companies
+---------
+
+|makinacom|_
+
+* `Planet Makina Corpus <http://www.makina-corpus.org>`_
+* `Contact Makina Corpus <mailto:python@makina-corpus.org>`_
 
 
-This product may contain traces of nuts.
+People
+------
+
+- JeanMichel FRANCOIS aka toutpt <toutpt@gmail.com>
+
+.. |makinacom| image:: http://depot.makina-corpus.org/public/logo.gif
+.. _makinacom:  http://www.makina-corpus.com
+.. _diggdigg: 

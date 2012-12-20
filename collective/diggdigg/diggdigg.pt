@@ -1,10 +1,12 @@
 <div class="dd_outer">
   <div class="dd_inner">
     <div id="dd_ajax_float">
+     <tal:buttons  tal:repeat="button view/get_buttons">
       <div class="dd_button_v">
-      TODO
+        <a tal:replace="structure button/finalURL"></a>
       </div>
       <div style="clear:left"></div>
+     </tal:buttons>
     </div>
   </div>
 </div>
