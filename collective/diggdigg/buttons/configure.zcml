@@ -4,5 +4,7 @@
 
   <adapter factory=".twitter.Twitter" name="twitter"/>
   <adapter factory=".facebook.FacebookLike" name="facebook"/>
+  <adapter factory=".google.PlusOne" name="plusone"/>
+  <adapter factory=".bufferapp.Buffer" name="bufferapp"/>
 
 </configure>

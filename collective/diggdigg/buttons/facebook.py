@@ -26,22 +26,11 @@ class FacebookLike(Button):
 
     def update(self):
         super(FacebookLike, self).update()
-        registry = self.portal_registry
         self.layout = 'box_count'
         self.locale = 'en_US'
         self.show_face = "false"
 
     def index(self):
-        attributes = ""
-        import pdb;pdb.set_trace()
-        for attribute in ATTRIBUTES:
-            value = getattr(self, attribute)
-            if value:
-                attributes += "data-" + attribute.replace('_', '-') + '="' + value + '" '
-        #remove trailing space
-        if attributes:
-            attributes = attributes[0:-1]
-
+        attributes = self.get_data_attributes()
         result = self.snippet % attributes
-        self.log(result)
         return result

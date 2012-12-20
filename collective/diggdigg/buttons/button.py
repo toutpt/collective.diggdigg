@@ -51,6 +51,17 @@ class Button(object):
     def log(self, message):
         logger.info(message)
 
+    def get_data_attributes(self):
+        attributes = ""
+        for attribute in self.settings_keys:
+            value = getattr(self, attribute)
+            if value:
+                key = "data-" + attribute.replace('_', '-')
+                attributes += key + '="' + value + '" '
+        #remove trailing space
+        if attributes:
+            attributes = attributes[0:-1]
+        return attributes
 
 def cmp_button(b1, b2):
     if b1.weight < b2.weight:

@@ -27,13 +27,5 @@ class Twitter(button.Button):
         self.count = registry.get(REGISTRY_KEY + 'count', "vertical")
 
     def index(self):
-        attributes = ""
-        for attribute in ATTRIBUTES:
-            value = getattr(self, attribute)
-            if value:
-                attributes += "data-" + attribute + '="' + value + '" '
-        #remove trailing space
-        if attributes:
-            attributes = attributes[0:-1]
-
+        attributes = self.get_data_attributes()
         return self.snippet % attributes
