@@ -5,6 +5,8 @@ from zope import schema
 from plone.registry.interfaces import IRegistry
 from Products.Archetypes.interfaces.base import IBaseObject
 from zope.publisher.interfaces import IRequest
+from zope.schema.interfaces import IVocabularyFactory
+from zope.schema.vocabulary import SimpleTerm
 
 
 logger = logging.getLogger("collective.diggdigg")
@@ -73,3 +75,15 @@ def cmp_button(b1, b2):
     elif b1.id > b2.id:
         return 1
     return 0
+
+
+class ButtonsVocabulary(object):
+    interface.implements(IVocabularyFactory)
+    def __call__(self, context):
+        cbuttons = list(component.getAdapters((context,
+                                              context.REQUEST),
+                                             IButton))
+        buttons = [button for name, button in cbuttons]
+        terms = [SimpleTerm(name, name, unicode(name)) for name in buttons]
+
+        return SimpleVocabulary(terms)
