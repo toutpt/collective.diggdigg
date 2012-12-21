@@ -2,7 +2,7 @@ from collective.diggdigg.buttons import button
 
 ATTRIBUTES = ("count")
 
-REGISTRY_KEY = "collective.diggdigg.twitter."
+REGISTRY_KEY = "collective.diggdigg.buffer."
 
 
 class Buffer(button.Button):

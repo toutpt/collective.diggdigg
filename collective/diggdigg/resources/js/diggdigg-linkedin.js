@@ -1,5 +1,4 @@
 jQuery(document).ready(function(){
-	
 	// Load Linked In Sharers (Resolves issue with position on page)
 	if(jQuery('.dd-linkedin-share').length && !jQuery('.dd_outer').length){
 		jQuery('.dd-linkedin-share div').each(function(index) {

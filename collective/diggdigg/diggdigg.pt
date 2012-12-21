@@ -12,10 +12,4 @@
 </div>
 <script type="text/javascript" tal:content="structure view/get_globalsettings"></script>
 <script type="text/javascript" src="++resource++collective.diggdigg/js/diggdigg-floating-bar.js"></script>
-
-<!-- 
-<script tal:condition="view/dd_lazyLoad_jQuery_script" type="text/javascript"
-  tal:content="structure view/dd_lazyLoad_jQuery_script"></script>
-<script type="text/javascript" tal:condition="view/dd_lazyLoad_scheduler_script"
-tal:content="structure string:jQuery(document).ready(function($) { ${view/dd_lazyLoad_scheduler_script} });"></script>
- -->
+<script type="text/javascript" src="++resource++collective.diggdigg/js/diggdigg-linkedin.js"></script>

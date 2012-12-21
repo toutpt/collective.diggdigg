@@ -9,5 +9,6 @@
   <adapter factory=".linkedin.Linkedin" name="linkedin"/>
   <adapter factory=".flattr.Flattr" name="flattr"/>
   <adapter factory=".reddit.Reddit" name="reddit"/>
+  <adapter factory=".viadeo.Viadeo" name="viadeo"/>
 
 </configure>

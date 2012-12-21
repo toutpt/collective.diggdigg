@@ -2,7 +2,7 @@ from collective.diggdigg.buttons import button
 
 ATTRIBUTES = ("url", )
 
-REGISTRY_KEY = "collective.diggdigg.pinterest."
+REGISTRY_KEY = "collective.diggdigg.flattr."
 
 
 class Flattr(button.Button):
