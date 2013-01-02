@@ -20,6 +20,9 @@ Companies
 * `Planet Makina Corpus <http://www.makina-corpus.org>`_
 * `Contact Makina Corpus <mailto:python@makina-corpus.org>`_
 
+|cirb|_ CIRB / CIBG
+
+* `Contact CIRB <mailto:irisline@irisnet.be>`_
 
 People
 ------
@@ -28,4 +31,6 @@ People
 
 .. |makinacom| image:: http://depot.makina-corpus.org/public/logo.gif
 .. _makinacom:  http://www.makina-corpus.com
-.. _diggdigg: 
+.. _diggdigg: http://wordpress.org/extend/plugins/digg-digg/
+.. |cirb| image:: http://www.cirb.irisnet.be/++theme++plonetheme.cirb/images/header-bg-fr.jpg
+.. _cirb: http://cirb.irisnet.be
