@@ -9,3 +9,9 @@ class Settings(interface.Interface):
               value_type=schema.Choice(title=u"Button",
                         vocabulary="collective.diggdigg.vocabulary.buttons")
               )
+
+    filter_types = schema.List(title=u"Filter types",
+              value_type=schema.Choice(title=u"Content type",
+                vocabulary="plone.app.vocabularies.ReallyUserFriendlyTypes"),
+              default=['Document', 'Blog Entry', 'Event', 'NewsItem']
+              )

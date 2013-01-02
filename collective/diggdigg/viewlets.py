@@ -14,18 +14,23 @@ class DiggDigg(ViewletBase):
         if self.available:
             self.update()
             return self.index()
+        return u""
 
     @property
     def available(self):
-        #TODO: push types over portal_registry
-        return self.context.portal_type in ('Document', 'Event', 'News Item')
+        settings = self.registry.forInterface(Settings)
+        if settings and settings.filter_types:
+            return self.context.portal_type in settings.filter_types
+        return True
 
     def update(self):
         ViewletBase.update(self)
+        if not hasattr(self, 'registry'):
+            self.registry = component.getUtility(IRegistry)
+
         buttons = list(component.getAdapters((self.context, self.request),
                                              IButton))
-        registry = component.getUtility(IRegistry)
-        settings = registry.forInterface(Settings)
+        settings = self.registry.forInterface(Settings)
 
         if settings and settings.buttons:
             self.buttons = [button for name, button in buttons\

@@ -2,11 +2,12 @@ import logging
 from zope import component
 from zope import interface
 from zope import schema
+from zope.globalrequest import getRequest
 from plone.registry.interfaces import IRegistry
 from Products.Archetypes.interfaces.base import IBaseObject
 from zope.publisher.interfaces import IRequest
 from zope.schema.interfaces import IVocabularyFactory
-from zope.schema.vocabulary import SimpleTerm
+from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
 
 
 logger = logging.getLogger("collective.diggdigg")
@@ -80,8 +81,8 @@ def cmp_button(b1, b2):
 class ButtonsVocabulary(object):
     interface.implements(IVocabularyFactory)
     def __call__(self, context):
-        cbuttons = list(component.getAdapters((context,
-                                              context.REQUEST),
+        request = getRequest()
+        cbuttons = list(component.getAdapters((context, request),
                                              IButton))
         buttons = [button for name, button in cbuttons]
         terms = [SimpleTerm(name, name, unicode(name)) for name in buttons]
