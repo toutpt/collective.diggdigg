@@ -2,6 +2,7 @@ import logging
 from zope import component
 from zope import interface
 from zope import schema
+from zope.component.hooks import getSite
 from zope.globalrequest import getRequest
 from plone.registry.interfaces import IRegistry
 from Products.Archetypes.interfaces.base import IBaseObject
@@ -79,12 +80,17 @@ def cmp_button(b1, b2):
 
 
 class ButtonsVocabulary(object):
+    """buttons vocab"""
     interface.implements(IVocabularyFactory)
+
     def __call__(self, context):
+        context = getattr(context, 'context', context)
         request = getRequest()
-        cbuttons = list(component.getAdapters((context, request),
-                                             IButton))
+        cbuttons = list(component.getAdapters((context, request), IButton))
         buttons = [button for name, button in cbuttons]
         terms = [SimpleTerm(name, name, unicode(name)) for name in buttons]
 
         return SimpleVocabulary(terms)
+
+
+ButtonsVocabularyFactory = ButtonsVocabulary()

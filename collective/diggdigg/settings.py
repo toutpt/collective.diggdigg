@@ -7,7 +7,8 @@ class Settings(interface.Interface):
 
     buttons = schema.List(title=u"Buttons",
               value_type=schema.Choice(title=u"Button",
-                        vocabulary="collective.diggdigg.vocabulary.buttons")
+                        vocabulary="collective.diggdigg.vocabulary.buttons"),
+              default=["twitter", "facebook", "plusone", "linkedin"]
               )
 
     filter_types = schema.List(title=u"Filter types",

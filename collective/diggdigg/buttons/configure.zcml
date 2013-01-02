@@ -11,5 +11,8 @@
   <adapter factory=".flattr.Flattr" name="flattr"/>
   <adapter factory=".reddit.Reddit" name="reddit"/>
   <adapter factory=".viadeo.Viadeo" name="viadeo"/>
-  <utility factory=".button.ButtonsVocabulary" name="collective.diggdigg.vocabulary.buttons"/>
+  <utility
+    component=".button.ButtonsVocabularyFactory"
+    name="collective.diggdigg.vocabulary.buttons"/>
+
 </configure>
