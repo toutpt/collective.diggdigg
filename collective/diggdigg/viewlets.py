@@ -27,8 +27,11 @@ class DiggDigg(ViewletBase):
         registry = component.getUtility(IRegistry)
         settings = registry.forInterface(Settings)
 
-        self.buttons = [button for name, button in buttons\
-                        if name in settings.buttons]
+        if settings and settings.buttons:
+            self.buttons = [button for name, button in buttons\
+                            if name in settings.buttons]
+        else:
+            self.buttons = [button for name, button in buttons]
 
         self.buttons.sort(cmp=cmp_button)
 
