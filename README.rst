@@ -7,6 +7,8 @@ This addon provide DiggDigg to Plone.
 About DiggDigg
 ==============
 
+With Digg DiggDigg, you have an all in one social sharing plugin for your site. Display all social sharing buttons nicely on your blog and make it look amazing, just like Mashable.
+
 Credits
 =======
 
